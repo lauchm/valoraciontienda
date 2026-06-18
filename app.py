@@ -301,7 +301,7 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-        st.title("📊 Panel del jefe")
+        st.title("📊 Estadisticas")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
