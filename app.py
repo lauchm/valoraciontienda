@@ -61,13 +61,13 @@ h1, h2, h3 {{
 }}
 
 div.stButton > button {{
-    height: 150px;
+    height: 70px;
     width: 100%;
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 600;
     white-space: pre-line;
-    line-height: 1.5;
-    border-radius: 18px;
+    line-height: 1.3;
+    border-radius: 14px;
     border: 2px solid rgba(15,61,62,0.12);
     background-color: {COLOR_TARJETA};
     color: {COLOR_TEXTO};
@@ -158,6 +158,38 @@ def mostrar_cabecera():
             st.markdown(f"<div class='logo-texto'>{EMPRESA}</div>", unsafe_allow_html=True)
 
 
+def cara_svg(color_circulo, tipo):
+    """Genera un icono de carita en SVG (vectorial, sin depender de archivos externos)."""
+    if tipo == "muy_mala":
+        boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = ('<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+                  '<line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>')
+    elif tipo == "mala":
+        boca = '<path d="M32,70 Q50,58 68,70" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+    elif tipo == "regular":
+        boca = '<line x1="32" y1="68" x2="68" y2="68" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+        cejas = ""
+    elif tipo == "buena":
+        boca = '<path d="M32,60 Q50,75 68,60" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+    else:  # excelente
+        boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+
+    return f"""
+    <div style="text-align:center; padding: 0 8px;">
+    <svg viewBox="0 0 100 100" width="100%" style="max-width:120px;" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" fill="{color_circulo}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
+        <circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>
+        <circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>
+        {cejas}
+        {boca}
+    </svg>
+    </div>
+    """
+
+
 def guardar_valoracion(valoracion, puntuacion):
     nueva_fila = pd.DataFrame({
         "Fecha": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
@@ -226,18 +258,19 @@ def pantalla_cliente_2():
     st.markdown("<br>", unsafe_allow_html=True)
 
     opciones = [
-        ("😁", "Excelente", 5),
-        ("🙂", "Buena", 4),
-        ("😐", "Regular", 3),
-        ("☹️", "Mala", 2),
-        ("😡", "Muy mala", 1),
+        ("#D32F2F", "muy_mala", "Muy mala", 1),
+        ("#F57C00", "mala", "Mala", 2),
+        ("#FBC02D", "regular", "Regular", 3),
+        ("#9CCC65", "buena", "Buena", 4),
+        ("#43A047", "excelente", "Excelente", 5),
     ]
 
     cols = st.columns(5)
-    for col, (emoji, texto, puntos) in zip(cols, opciones):
+    for col, (color, tipo, texto, puntos) in zip(cols, opciones):
         with col:
-            if st.button(f"{emoji}\n{texto}", key=f"btn_{puntos}", use_container_width=True):
-                finalizar(f"{emoji} {texto}", puntos)
+            st.markdown(cara_svg(color, tipo), unsafe_allow_html=True)
+            if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
+                finalizar(texto, puntos)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
