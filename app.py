@@ -8,12 +8,12 @@ import io
 # ============================================================
 # CONFIGURACIÓN — PERSONALIZA AQUÍ TU MARCA
 # ============================================================
-EMPRESA = "COHIMAR"                  # <-- Cambia esto por el nombre real de la empresa
+EMPRESA = "TU TIENDA"                  # <-- Cambia esto por el nombre real de la empresa
 LOGO_PATH = "logo.png"                 # <-- Pon tu logo (PNG/JPG) en esta misma carpeta con este nombre
 ARCHIVO_DATOS = "valoraciones.csv"     # Dónde se guardan las valoraciones
 
-COLOR_PRIMARIO = "#042F5C"             # Verde petróleo — color principal de marca
-COLOR_SECUNDARIO = "#D92516"           # Coral — color de acento
+COLOR_PRIMARIO = "#0F3D3E"             # Verde petróleo — color principal de marca
+COLOR_SECUNDARIO = "#FF6B4A"           # Coral — color de acento
 COLOR_FONDO = "#F7F5F1"                # Crema — fondo general
 COLOR_TARJETA = "#FFFFFF"              # Blanco — fondo de tarjetas/botones
 COLOR_TEXTO = "#1C1C1C"                # Texto principal
@@ -107,6 +107,21 @@ div[data-testid="stMetric"] {{
     padding: 1rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }}
+
+/* Campo de albarán — grande y táctil */
+div[data-testid="stTextInput"] input {{
+    height: 80px;
+    font-size: 2.2rem;
+    text-align: center;
+    border-radius: 16px;
+    border: 2px solid rgba(15,61,62,0.18);
+    background-color: {COLOR_TARJETA};
+}}
+
+div[data-testid="stTextInput"] input::placeholder {{
+    font-size: 1.6rem;
+    color: #999;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -176,7 +191,7 @@ def pantalla_cliente_1():
         unsafe_allow_html=True,
     )
 
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.text_input(
             "Número de albarán",
