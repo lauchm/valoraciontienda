@@ -177,17 +177,17 @@ def cara_svg(color_circulo, tipo):
         boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
         cejas = ""
 
-    return f"""
-    <div style="text-align:center; padding: 0 8px;">
-    <svg viewBox="0 0 100 100" width="100%" style="max-width:120px;" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="46" fill="{color_circulo}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
-        <circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>
-        <circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>
-        {cejas}
-        {boca}
-    </svg>
-    </div>
-    """
+    # Todo en una sola línea: si quedara una línea vacía dentro del bloque,
+    # Streamlit corta el HTML por la mitad y se ve el código como texto.
+    svg = (
+        '<svg viewBox="0 0 100 100" width="100%" style="max-width:120px;" xmlns="http://www.w3.org/2000/svg">'
+        f'<circle cx="50" cy="50" r="46" fill="{color_circulo}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
+        '<circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>'
+        '<circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>'
+        f'{cejas}{boca}'
+        '</svg>'
+    )
+    return f'<div style="text-align:center; padding:0 8px;">{svg}</div>'
 
 
 def guardar_valoracion(valoracion, puntuacion):
