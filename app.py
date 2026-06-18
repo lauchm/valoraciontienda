@@ -1,0 +1,315 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import os
+import time
+import io
+
+# ============================================================
+# CONFIGURACIÓN — PERSONALIZA AQUÍ TU MARCA
+# ============================================================
+EMPRESA = "COHIMAR"                  # <-- Cambia esto por el nombre real de la empresa
+LOGO_PATH = "logo.png"                 # <-- Pon tu logo (PNG/JPG) en esta misma carpeta con este nombre
+ARCHIVO_DATOS = "valoraciones.csv"     # Dónde se guardan las valoraciones
+
+COLOR_PRIMARIO = "#042F5C"             # Verde petróleo — color principal de marca
+COLOR_SECUNDARIO = "#D92516"           # Coral — color de acento
+COLOR_FONDO = "#F7F5F1"                # Crema — fondo general
+COLOR_TARJETA = "#FFFFFF"              # Blanco — fondo de tarjetas/botones
+COLOR_TEXTO = "#1C1C1C"                # Texto principal
+
+# Contraseña de administrador.
+# En local puedes dejarla aquí abajo (valor "1234" por defecto).
+# Si despliegas en Streamlit Community Cloud, mejor defínela en "Secrets" (ver instrucciones aparte).
+try:
+    ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
+except Exception:
+    ADMIN_PASSWORD = "1234"
+
+# ============================================================
+# CONFIGURACIÓN DE PÁGINA
+# ============================================================
+st.set_page_config(
+    page_title=f"Valoración — {EMPRESA}",
+    page_icon="⭐",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# ============================================================
+# ESTILOS
+# ============================================================
+st.markdown(f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+#MainMenu {{visibility:hidden;}}
+footer {{visibility:hidden;}}
+header {{visibility:hidden;}}
+
+html, body, [class*="css"] {{
+    font-family: 'Inter', sans-serif;
+}}
+
+.stApp {{
+    background: {COLOR_FONDO};
+}}
+
+h1, h2, h3 {{
+    font-family: 'Poppins', sans-serif;
+    color: {COLOR_PRIMARIO};
+}}
+
+div.stButton > button {{
+    height: 150px;
+    width: 100%;
+    font-size: 1.35rem;
+    font-weight: 600;
+    white-space: pre-line;
+    line-height: 1.5;
+    border-radius: 18px;
+    border: 2px solid rgba(15,61,62,0.12);
+    background-color: {COLOR_TARJETA};
+    color: {COLOR_TEXTO};
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}}
+
+div.stButton > button:hover {{
+    border-color: {COLOR_SECUNDARIO};
+    box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+}}
+
+div.stButton > button:active {{
+    transform: scale(0.97);
+}}
+
+div.stButton > button[kind="primary"] {{
+    background-color: {COLOR_PRIMARIO} !important;
+    color: white !important;
+    border: none !important;
+    height: 64px;
+    font-size: 1.1rem;
+}}
+
+.logo-texto {{
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 2.1rem;
+    color: {COLOR_PRIMARIO};
+    letter-spacing: 1px;
+    text-align: center;
+}}
+
+div[data-testid="stMetric"] {{
+    background-color: {COLOR_TARJETA};
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}}
+</style>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# ESTADO DE SESIÓN
+# ============================================================
+if "pantalla" not in st.session_state:
+    st.session_state.pantalla = 1
+if "albaran" not in st.session_state:
+    st.session_state.albaran = ""
+if "albaran_actual" not in st.session_state:
+    st.session_state.albaran_actual = ""
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+
+# ============================================================
+# FUNCIONES AUXILIARES
+# ============================================================
+def mostrar_cabecera():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if os.path.exists(LOGO_PATH):
+            st.image(LOGO_PATH, use_container_width=True)
+        else:
+            st.markdown(f"<div class='logo-texto'>{EMPRESA}</div>", unsafe_allow_html=True)
+
+
+def guardar_valoracion(valoracion, puntuacion):
+    nueva_fila = pd.DataFrame({
+        "Fecha": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "Albaran": [st.session_state.albaran_actual],
+        "Valoracion": [valoracion],
+        "Puntuacion": [puntuacion],
+    })
+
+    if os.path.exists(ARCHIVO_DATOS):
+        df = pd.read_csv(ARCHIVO_DATOS)
+        df = pd.concat([df, nueva_fila], ignore_index=True)
+    else:
+        df = nueva_fila
+
+    df.to_csv(ARCHIVO_DATOS, index=False)
+
+
+def finalizar(valoracion, puntuacion):
+    guardar_valoracion(valoracion, puntuacion)
+
+    st.balloons()
+    st.success("¡Gracias por su valoración!")
+
+    time.sleep(2.5)
+
+    st.session_state.albaran = ""
+    st.session_state.albaran_actual = ""
+    st.session_state.pantalla = 1
+    st.rerun()
+
+
+# ============================================================
+# PANTALLAS — CLIENTE
+# ============================================================
+def pantalla_cliente_1():
+    mostrar_cabecera()
+    st.markdown(
+        "<h2 style='text-align:center; margin-top:1.5rem;'>Introduzca su número de albarán</h2>",
+        unsafe_allow_html=True,
+    )
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.text_input(
+            "Número de albarán",
+            key="albaran",
+            label_visibility="collapsed",
+            placeholder="Ej: AL-2026-00123",
+        )
+        if st.button("Siguiente ➜", type="primary", use_container_width=True):
+            valor = st.session_state.albaran.strip()
+            if valor == "":
+                st.warning("Por favor, introduce un número de albarán antes de continuar.")
+            else:
+                st.session_state.albaran_actual = valor
+                st.session_state.pantalla = 2
+                st.rerun()
+
+
+def pantalla_cliente_2():
+    mostrar_cabecera()
+    st.markdown(
+        "<h2 style='text-align:center; margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    opciones = [
+        ("😁", "Excelente", 5),
+        ("🙂", "Buena", 4),
+        ("😐", "Regular", 3),
+        ("☹️", "Mala", 2),
+        ("😡", "Muy mala", 1),
+    ]
+
+    cols = st.columns(5)
+    for col, (emoji, texto, puntos) in zip(cols, opciones):
+        with col:
+            if st.button(f"{emoji}\n{texto}", key=f"btn_{puntos}", use_container_width=True):
+                finalizar(f"{emoji} {texto}", puntos)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("⟵ Volver", use_container_width=True):
+            st.session_state.pantalla = 1
+            st.rerun()
+
+
+# ============================================================
+# PANTALLAS — ADMINISTRADOR
+# ============================================================
+def pantalla_login_admin():
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.markdown("<div class='logo-texto'>🔒 Acceso administrador</div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        clave = st.text_input("Contraseña", type="password", label_visibility="collapsed", placeholder="Contraseña")
+        if st.button("Entrar", type="primary", use_container_width=True):
+            if clave == ADMIN_PASSWORD:
+                st.session_state.is_admin = True
+                st.rerun()
+            else:
+                st.error("Contraseña incorrecta")
+
+
+def panel_admin():
+    col_titulo, col_salir = st.columns([5, 1])
+    with col_titulo:
+        st.title("📊 Panel del jefe")
+    with col_salir:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Cerrar sesión"):
+            st.session_state.is_admin = False
+            st.rerun()
+
+    if not os.path.exists(ARCHIVO_DATOS):
+        st.info("Todavía no hay valoraciones registradas.")
+        return
+
+    df = pd.read_csv(ARCHIVO_DATOS)
+    if df.empty:
+        st.info("Todavía no hay valoraciones registradas.")
+        return
+
+    total = len(df)
+    media = round(df["Puntuacion"].mean(), 2)
+    satisfechos = round(len(df[df["Puntuacion"] >= 4]) / total * 100, 1)
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Valoraciones totales", total)
+    c2.metric("Nota media", f"{media} / 5")
+    c3.metric("% satisfechos", f"{satisfechos}%")
+
+    st.subheader("Distribución de valoraciones")
+    st.bar_chart(df["Valoracion"].value_counts())
+
+    st.subheader("Valoraciones por día")
+    df["Dia"] = pd.to_datetime(df["Fecha"]).dt.date
+    st.line_chart(df.groupby("Dia").size())
+
+    st.subheader("Buscar por número de albarán")
+    buscar = st.text_input("Número de albarán", key="buscar_albaran")
+    if buscar:
+        st.dataframe(df[df["Albaran"].astype(str) == buscar], use_container_width=True)
+
+    st.subheader("Últimas valoraciones")
+    st.dataframe(df.tail(20), use_container_width=True)
+
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Valoraciones")
+
+    st.download_button(
+        "⬇️ Descargar Excel",
+        data=buffer.getvalue(),
+        file_name="valoraciones.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+# ============================================================
+# ENRUTAMIENTO
+# ============================================================
+params = st.query_params
+modo_admin = "admin" in params
+
+if modo_admin:
+    if st.session_state.is_admin:
+        panel_admin()
+    else:
+        pantalla_login_admin()
+else:
+    if st.session_state.pantalla == 1:
+        pantalla_cliente_1()
+    elif st.session_state.pantalla == 2:
+        pantalla_cliente_2()
