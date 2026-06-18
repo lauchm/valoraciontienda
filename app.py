@@ -109,17 +109,25 @@ div[data-testid="stMetric"] {{
 }}
 
 /* Campo de albarán — grande y táctil */
-div[data-testid="stTextInput"] input {{
+div[data-testid="stTextInput"] > div {{
     height: 80px;
-    font-size: 2.2rem;
+    border-radius: 16px;
+}}
+
+div[data-testid="stTextInput"] input {{
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 1.8rem;
     text-align: center;
+    line-height: normal;
+    padding: 0 1rem;
     border-radius: 16px;
     border: 2px solid rgba(15,61,62,0.18);
     background-color: {COLOR_TARJETA};
 }}
 
 div[data-testid="stTextInput"] input::placeholder {{
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     color: #999;
 }}
 </style>
