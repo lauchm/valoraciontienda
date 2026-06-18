@@ -4,19 +4,26 @@ from datetime import datetime
 import os
 import time
 import io
+import requests
 
 # ============================================================
 # CONFIGURACIÓN — PERSONALIZA AQUÍ TU MARCA
 # ============================================================
 EMPRESA = "TU TIENDA"                  # <-- Cambia esto por el nombre real de la empresa
 LOGO_PATH = "logo.png"                 # <-- Pon tu logo (PNG/JPG) en esta misma carpeta con este nombre
-ARCHIVO_DATOS = "valoraciones.csv"     # Dónde se guardan las valoraciones
 
 COLOR_PRIMARIO = "#0F3D3E"             # Verde petróleo — color principal de marca
 COLOR_SECUNDARIO = "#FF6B4A"           # Coral — color de acento
 COLOR_FONDO = "#F7F5F1"                # Crema — fondo general
 COLOR_TARJETA = "#FFFFFF"              # Blanco — fondo de tarjetas/botones
 COLOR_TEXTO = "#1C1C1C"                # Texto principal
+
+# --- Google Form (guardado) y Google Sheet (lectura de estadísticas) ---
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeewgmJlHEkir0rxbdutf9nlCKtg4pD4Wj3Iv_1GrKQlP9IDQ/formResponse"
+ENTRY_ALBARAN = "entry.2037040514"
+ENTRY_VALORACION = "entry.1051794112"
+ENTRY_PUNTUACION = "entry.1166063584"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1EMdjTo2PmVnJvkfyj78q0LjpmWzsKYJ4MZW64XyhOj8/gviz/tq?tqx=out:csv&gid=0"
 
 # Contraseña de administrador.
 # En local puedes dejarla aquí abajo (valor "1234" por defecto).
@@ -191,20 +198,21 @@ def cara_svg(color_circulo, tipo):
 
 
 def guardar_valoracion(valoracion, puntuacion):
-    nueva_fila = pd.DataFrame({
-        "Fecha": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-        "Albaran": [st.session_state.albaran_actual],
-        "Valoracion": [valoracion],
-        "Puntuacion": [puntuacion],
-    })
-
-    if os.path.exists(ARCHIVO_DATOS):
-        df = pd.read_csv(ARCHIVO_DATOS)
-        df = pd.concat([df, nueva_fila], ignore_index=True)
-    else:
-        df = nueva_fila
-
-    df.to_csv(ARCHIVO_DATOS, index=False)
+    datos = {
+        ENTRY_ALBARAN: st.session_state.albaran_actual,
+        ENTRY_VALORACION: valoracion,
+        ENTRY_PUNTUACION: puntuacion,
+    }
+    try:
+        requests.post(
+            FORM_URL,
+            data=datos,
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=10,
+        )
+    except Exception:
+        # Si falla el envío no bloqueamos al cliente; simplemente no queda registrada esta valoración.
+        pass
 
 
 def finalizar(valoracion, puntuacion):
@@ -301,18 +309,30 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-        st.title("📊 Estadisticas")
+        st.title("📊 Panel del jefe")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
             st.session_state.is_admin = False
             st.rerun()
 
-    if not os.path.exists(ARCHIVO_DATOS):
+    try:
+        respuesta = requests.get(SHEET_CSV_URL, timeout=10)
+        respuesta.raise_for_status()
+        df = pd.read_csv(io.StringIO(respuesta.text))
+    except Exception:
+        st.error("No se han podido cargar los datos de la hoja. Comprueba que sigue compartida como 'Cualquier persona con el enlace'.")
+        return
+
+    if df.empty:
         st.info("Todavía no hay valoraciones registradas.")
         return
 
-    df = pd.read_csv(ARCHIVO_DATOS)
+    # La primera columna la pone Google Forms automáticamente con la fecha de envío.
+    df.columns = ["Fecha", "Albaran", "Valoracion", "Puntuacion"]
+    df["Puntuacion"] = pd.to_numeric(df["Puntuacion"], errors="coerce")
+    df = df.dropna(subset=["Puntuacion"])
+
     if df.empty:
         st.info("Todavía no hay valoraciones registradas.")
         return
