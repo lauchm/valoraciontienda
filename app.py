@@ -12,8 +12,8 @@ import requests
 EMPRESA = "TU TIENDA"                  # <-- Cambia esto por el nombre real de la empresa
 LOGO_PATH = "logo.png"                 # <-- Pon tu logo (PNG/JPG) en esta misma carpeta con este nombre
 
-COLOR_PRIMARIO = "#0F3D3E"             # Verde petróleo — color principal de marca
-COLOR_SECUNDARIO = "#FF6B4A"           # Coral — color de acento
+COLOR_PRIMARIO = "#0F3D3E"             # Color principal de marca
+COLOR_SECUNDARIO = "#FF6B4A"           # Color secundario de marca
 COLOR_FONDO = "#F7F5F1"                # Crema — fondo general
 COLOR_TARJETA = "#FFFFFF"              # Blanco — fondo de tarjetas/botones
 COLOR_TEXTO = "#1C1C1C"                # Texto principal
@@ -350,7 +350,7 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-        st.title("📊 Panel del jefe")
+            st.title("📊 Datos Recogidos ")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
