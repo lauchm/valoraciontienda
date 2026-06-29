@@ -161,20 +161,23 @@ div[data-testid="stTextInput"] > div {{
 </style>
 """, unsafe_allow_html=True)
 
-# Inyección de inputmode="numeric" para que la tablet abra el teclado numérico
+# Teclado numérico — MutationObserver para pillar el input cuando aparece en el DOM
 st.markdown("""
 <script>
-function setNumericKeyboard() {
-    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-    inputs.forEach(function(inp) {
-        inp.setAttribute('inputmode', 'numeric');
-        inp.setAttribute('pattern', '[0-9]*');
-    });
-}
-// Ejecutar al cargar y cada vez que Streamlit re-renderice
-setNumericKeyboard();
-setTimeout(setNumericKeyboard, 500);
-setTimeout(setNumericKeyboard, 1500);
+(function() {
+    function aplicarNumerico() {
+        var inputs = window.parent.document.querySelectorAll('input[type="text"]');
+        inputs.forEach(function(inp) {
+            if (inp.getAttribute('inputmode') !== 'numeric') {
+                inp.setAttribute('inputmode', 'numeric');
+                inp.setAttribute('pattern', '[0-9]*');
+            }
+        });
+    }
+    aplicarNumerico();
+    var observer = new MutationObserver(function() { aplicarNumerico(); });
+    observer.observe(window.parent.document.body, { childList: true, subtree: true });
+})();
 </script>
 """, unsafe_allow_html=True)
 
@@ -283,7 +286,7 @@ def pantalla_cliente_1():
             "Número de albarán",
             key="albaran",
             label_visibility="collapsed",
-            placeholder="Ej: AL-2026-00123",
+            placeholder="Ej: 000000",
         )
         if st.button("Siguiente ➜", type="primary", use_container_width=True):
             valor = st.session_state.albaran.strip()
