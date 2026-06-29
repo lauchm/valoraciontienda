@@ -115,12 +115,32 @@ div[data-testid="stMetric"] {{
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }}
 
-/* Campo de albarán — grande y táctil */
-div[data-testid="stTextInput"] > div {{
-    height: 80px;
-    border-radius: 16px;
+/* ---- Sin scroll: pantalla fija a la altura de la tablet ---- */
+html, body {{
+    height: 100%;
+    overflow: hidden;
 }}
 
+.stApp {{
+    height: 100vh;
+    overflow: hidden;
+    background: {COLOR_FONDO};
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}}
+
+section[data-testid="stAppViewContainer"] > div:first-child {{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}}
+
+section[data-testid="stMain"] > div {{
+    padding-top: 1rem !important;
+    padding-bottom: 0.5rem !important;
+}}
+
+/* ---- Teclado numérico en el campo de albarán ---- */
 div[data-testid="stTextInput"] input {{
     height: 100%;
     box-sizing: border-box;
@@ -131,13 +151,31 @@ div[data-testid="stTextInput"] input {{
     border-radius: 16px;
     border: 2px solid rgba(15,61,62,0.18);
     background-color: {COLOR_TARJETA};
+    inputmode: numeric;
 }}
 
-div[data-testid="stTextInput"] input::placeholder {{
-    font-size: 1.3rem;
-    color: #999;
+div[data-testid="stTextInput"] > div {{
+    height: 80px;
+    border-radius: 16px;
 }}
 </style>
+""", unsafe_allow_html=True)
+
+# Inyección de inputmode="numeric" para que la tablet abra el teclado numérico
+st.markdown("""
+<script>
+function setNumericKeyboard() {
+    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+    inputs.forEach(function(inp) {
+        inp.setAttribute('inputmode', 'numeric');
+        inp.setAttribute('pattern', '[0-9]*');
+    });
+}
+// Ejecutar al cargar y cada vez que Streamlit re-renderice
+setNumericKeyboard();
+setTimeout(setNumericKeyboard, 500);
+setTimeout(setNumericKeyboard, 1500);
+</script>
 """, unsafe_allow_html=True)
 
 # ============================================================
@@ -309,7 +347,7 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-        st.title("📊 Estadística")
+        st.title("📊 Panel del jefe")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
