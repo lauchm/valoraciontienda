@@ -12,8 +12,8 @@ import requests
 EMPRESA = "TU TIENDA"                  # <-- Cambia esto por el nombre real de la empresa
 LOGO_PATH = "logo.png"                 # <-- Pon tu logo (PNG/JPG) en esta misma carpeta con este nombre
 
-COLOR_PRIMARIO = "#0F3D3E"             # Color principal de marca
-COLOR_SECUNDARIO = "#FF6B4A"           # Color secundario de marca
+COLOR_PRIMARIO = "#0F3D3E"             # Verde petróleo — color principal de marca
+COLOR_SECUNDARIO = "#FF6B4A"           # Coral — color de acento
 COLOR_FONDO = "#F7F5F1"                # Crema — fondo general
 COLOR_TARJETA = "#FFFFFF"              # Blanco — fondo de tarjetas/botones
 COLOR_TEXTO = "#1C1C1C"                # Texto principal
@@ -350,7 +350,7 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-            st.title("📊 Datos Recogidos ")
+        st.title("📊 Panel del jefe")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
@@ -388,11 +388,21 @@ def panel_admin():
     c3.metric("% satisfechos", f"{satisfechos}%")
 
     st.subheader("Distribución de valoraciones")
-    st.bar_chart(df["Valoracion"].value_counts())
+    dist = df["Valoracion"].value_counts().reset_index()
+    dist.columns = ["Valoracion", "Total"]
+    orden = ["😁 Excelente", "🙂 Buena", "😐 Regular", "☹️ Mala", "😡 Muy mala",
+             "Excelente", "Buena", "Regular", "Mala", "Muy mala"]
+    dist["Valoracion"] = pd.Categorical(dist["Valoracion"],
+                                        categories=[v for v in orden if v in dist["Valoracion"].values],
+                                        ordered=True)
+    dist = dist.sort_values("Valoracion")
+    st.bar_chart(dist.set_index("Valoracion")["Total"])
 
     st.subheader("Valoraciones por día")
     df["Dia"] = pd.to_datetime(df["Fecha"]).dt.date
-    st.line_chart(df.groupby("Dia").size())
+    por_dia = df.groupby("Dia").size().reset_index(name="Total")
+    por_dia["Dia"] = pd.to_datetime(por_dia["Dia"])
+    st.line_chart(por_dia.set_index("Dia")["Total"], y_label="Valoraciones")
 
     st.subheader("Buscar por número de albarán")
     buscar = st.text_input("Número de albarán", key="buscar_albaran")
