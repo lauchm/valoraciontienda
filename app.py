@@ -398,11 +398,7 @@ def panel_admin():
     dist = dist.sort_values("Valoracion")
     st.bar_chart(dist.set_index("Valoracion")["Total"])
 
-    st.subheader("Valoraciones por día")
-    df["Dia"] = pd.to_datetime(df["Fecha"]).dt.date
-    por_dia = df.groupby("Dia").size().reset_index(name="Total")
-    por_dia["Dia"] = pd.to_datetime(por_dia["Dia"])
-    st.line_chart(por_dia.set_index("Dia")["Total"], y_label="Valoraciones")
+
 
     st.subheader("Buscar por número de albarán")
     buscar = st.text_input("Número de albarán", key="buscar_albaran")
