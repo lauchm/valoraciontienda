@@ -299,22 +299,6 @@ def pantalla_cliente_1():
 
 
 def pantalla_cliente_2():
-    # Procesar selección via query params (viene del click en la tarjeta HTML)
-    params = st.query_params
-    if "val" in params and st.session_state.pantalla == 2:
-        val = params["val"]
-        mapa = {
-            "1": ("Muy mala",  1),
-            "2": ("Mala",      2),
-            "3": ("Regular",   3),
-            "4": ("Buena",     4),
-            "5": ("Excelente", 5),
-        }
-        if val in mapa:
-            st.query_params.clear()
-            finalizar(mapa[val][0], mapa[val][1])
-            return
-
     mostrar_cabecera()
     st.markdown(
         "<h2 style='text-align:center; margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
@@ -323,16 +307,16 @@ def pantalla_cliente_2():
     st.markdown("<br>", unsafe_allow_html=True)
 
     opciones = [
-        ("#D32F2F", "muy_mala", "Muy mala", "1"),
-        ("#F57C00", "mala",     "Mala",     "2"),
-        ("#FBC02D", "regular",  "Regular",  "3"),
-        ("#9CCC65", "buena",    "Buena",    "4"),
-        ("#43A047", "excelente","Excelente","5"),
+        ("#D32F2F", "muy_mala", "Muy mala", 1),
+        ("#F57C00", "mala",     "Mala",     2),
+        ("#FBC02D", "regular",  "Regular",  3),
+        ("#9CCC65", "buena",    "Buena",    4),
+        ("#43A047", "excelente","Excelente",5),
     ]
 
-    tarjetas_html = '<div style="display:flex; gap:12px; justify-content:center; padding:0 8px;">'
-    for color, tipo, texto, val in opciones:
-        # Construir SVG de la cara en línea
+    # Caras SVG clickables — al tocarlas activan el botón de Streamlit correspondiente
+    caras_html = '<div style="display:flex; gap:12px; justify-content:center; padding:0 8px; margin-bottom:10px;">'
+    for color, tipo, texto, puntos in opciones:
         if tipo == "muy_mala":
             boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
             cejas = '<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
@@ -358,35 +342,44 @@ def pantalla_cliente_2():
             '</svg>'
         )
 
-        tarjetas_html += (
-            f'<div onclick="seleccionar(\'{val}\', \'{color}\')" style="'
-            'flex:1; cursor:pointer; display:flex; flex-direction:column; align-items:center;'
-            'background:white; border-radius:18px; padding:20px 10px 16px 10px;'
-            f'border:3px solid transparent; box-shadow:0 4px 14px rgba(0,0,0,0.06);'
-            'transition:transform 0.15s, box-shadow 0.15s, border-color 0.15s;'
-            f'" id="card_{val}">'
-            f'<div style="width:100%">{svg}</div>'
-            f'<span style="margin-top:14px; font-family:Inter,sans-serif; font-weight:600; font-size:1.1rem; color:#1C1C1C;">{texto}</span>'
+        caras_html += (
+            f'<div id="cara_{puntos}" '
+            f'onclick="pulsarCara(this,\'{texto}\',\'{color}\')" '
+            f'ontouchstart="pulsarCara(this,\'{texto}\',\'{color}\')" '
+            'style="flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;'
+            'background:white;border-radius:18px;padding:20px 10px 16px 10px;'
+            'border:3px solid transparent;box-shadow:0 4px 14px rgba(0,0,0,0.06);'
+            'transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s;">'
+            f'<div style="width:100%;">{svg}</div>'
+            f'<span style="margin-top:14px;font-family:Inter,sans-serif;font-weight:600;font-size:1.1rem;color:#1C1C1C;">{texto}</span>'
             '</div>'
         )
 
-    tarjetas_html += '''</div>
+    caras_html += '''</div>
 <script>
-function seleccionar(val, color) {
-    // Iluminar la tarjeta pulsada
-    var card = document.getElementById("card_" + val);
-    if (card) {
-        card.style.transform = "scale(0.93)";
-        card.style.borderColor = color;
-        card.style.boxShadow = "0 0 0 6px " + color + "55";
-    }
-    // Navegar dentro del mismo iframe tras un pequeño delay visual
+function pulsarCara(el, texto, color) {
+    el.style.transform = "scale(0.93)";
+    el.style.borderColor = color;
+    el.style.boxShadow = "0 0 0 6px " + color + "55";
     setTimeout(function() {
-        window.parent.location.href = window.parent.location.pathname + "?val=" + val;
-    }, 200);
+        var btns = window.parent.document.querySelectorAll("button[kind='secondary'], button");
+        for (var i = 0; i < btns.length; i++) {
+            if (btns[i].innerText.trim() === texto) {
+                btns[i].click();
+                return;
+            }
+        }
+    }, 180);
 }
 </script>'''
-    st.markdown(tarjetas_html, unsafe_allow_html=True)
+    st.markdown(caras_html, unsafe_allow_html=True)
+
+    # Botones reales de Streamlit (también pulsables directamente)
+    cols = st.columns(5)
+    for col, (color, tipo, texto, puntos) in zip(cols, opciones):
+        with col:
+            if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
+                finalizar(texto, puntos)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
