@@ -262,7 +262,7 @@ def finalizar(valoracion, puntuacion):
     st.balloons()
     st.success("¡Gracias por su valoración!")
 
-    time.sleep(2.5)
+    time.sleep(1)
 
     st.session_state.albaran = ""
     st.session_state.albaran_actual = ""
@@ -299,6 +299,22 @@ def pantalla_cliente_1():
 
 
 def pantalla_cliente_2():
+    # Procesar selección via query params (viene del click en la tarjeta HTML)
+    params = st.query_params
+    if "val" in params and st.session_state.pantalla == 2:
+        val = params["val"]
+        mapa = {
+            "1": ("Muy mala",  1),
+            "2": ("Mala",      2),
+            "3": ("Regular",   3),
+            "4": ("Buena",     4),
+            "5": ("Excelente", 5),
+        }
+        if val in mapa:
+            st.query_params.clear()
+            finalizar(mapa[val][0], mapa[val][1])
+            return
+
     mostrar_cabecera()
     st.markdown(
         "<h2 style='text-align:center; margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
@@ -307,19 +323,56 @@ def pantalla_cliente_2():
     st.markdown("<br>", unsafe_allow_html=True)
 
     opciones = [
-        ("#D32F2F", "muy_mala", "Muy mala", 1),
-        ("#F57C00", "mala", "Mala", 2),
-        ("#FBC02D", "regular", "Regular", 3),
-        ("#9CCC65", "buena", "Buena", 4),
-        ("#43A047", "excelente", "Excelente", 5),
+        ("#D32F2F", "muy_mala", "Muy mala", "1"),
+        ("#F57C00", "mala",     "Mala",     "2"),
+        ("#FBC02D", "regular",  "Regular",  "3"),
+        ("#9CCC65", "buena",    "Buena",    "4"),
+        ("#43A047", "excelente","Excelente","5"),
     ]
 
-    cols = st.columns(5)
-    for col, (color, tipo, texto, puntos) in zip(cols, opciones):
-        with col:
-            st.markdown(cara_svg(color, tipo), unsafe_allow_html=True)
-            if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
-                finalizar(texto, puntos)
+    tarjetas_html = '<div style="display:flex; gap:12px; justify-content:center; padding:0 8px;">'
+    for color, tipo, texto, val in opciones:
+        # Construir SVG de la cara en línea
+        if tipo == "muy_mala":
+            boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+            cejas = '<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+        elif tipo == "mala":
+            boca = '<path d="M32,70 Q50,58 68,70" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+            cejas = ""
+        elif tipo == "regular":
+            boca = '<line x1="32" y1="68" x2="68" y2="68" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+            cejas = ""
+        elif tipo == "buena":
+            boca = '<path d="M32,60 Q50,75 68,60" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+            cejas = ""
+        else:
+            boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
+            cejas = ""
+
+        svg = (
+            '<svg viewBox="0 0 100 100" width="100%" xmlns="http://www.w3.org/2000/svg">'
+            f'<circle cx="50" cy="50" r="46" fill="{color}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
+            '<circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>'
+            '<circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>'
+            f'{cejas}{boca}'
+            '</svg>'
+        )
+
+        tarjetas_html += (
+            f'<a href="?val={val}" style="'
+            'flex:1; text-decoration:none; display:flex; flex-direction:column; align-items:center;'
+            'background:white; border-radius:18px; padding:20px 10px 16px 10px;'
+            'border:2px solid rgba(0,0,0,0.08); box-shadow:0 4px 14px rgba(0,0,0,0.06);'
+            'transition:transform 0.1s ease, box-shadow 0.1s ease, border-color 0.15s ease;'
+            f'" onmousedown="this.style.transform=\'scale(0.94)\';this.style.boxShadow=\'0 0 0 4px {color}88\';this.style.borderColor=\'{color}\'"'
+            f' ontouchstart="this.style.transform=\'scale(0.94)\';this.style.boxShadow=\'0 0 0 4px {color}88\';this.style.borderColor=\'{color}\'">'
+            f'<div style="width:100%">{svg}</div>'
+            f'<span style="margin-top:14px; font-family:Inter,sans-serif; font-weight:600; font-size:1.1rem; color:#1C1C1C;">{texto}</span>'
+            '</a>'
+        )
+
+    tarjetas_html += '</div>'
+    st.markdown(tarjetas_html, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -350,7 +403,7 @@ def pantalla_login_admin():
 def panel_admin():
     col_titulo, col_salir = st.columns([5, 1])
     with col_titulo:
-        st.title("📊 Estadísticas")
+        st.title("📊 Panel del jefe")
     with col_salir:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Cerrar sesión"):
