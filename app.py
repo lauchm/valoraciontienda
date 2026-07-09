@@ -311,41 +311,68 @@ def pantalla_cliente_1():
 def pantalla_cliente_2():
     mostrar_cabecera()
 
-    st.markdown(
-        "<h2 style='text-align:center;margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+        <h2 style="
+            text-align:center;
+            margin-top:10px;
+            margin-bottom:30px;
+            font-size:2.2rem;">
+            ¿Cómo ha sido su experiencia?
+        </h2>
+    """, unsafe_allow_html=True)
 
     opciones = [
-        ("#D32F2F", "muy_mala", "Muy mala", 1),
-        ("#F57C00", "mala", "Mala", 2),
-        ("#FBC02D", "regular", "Regular", 3),
-        ("#9CCC65", "buena", "Buena", 4),
-        ("#43A047", "excelente", "Excelente", 5),
+        ("#D32F2F", "muy_mala", "😡\nMuy mala", 1),
+        ("#F57C00", "mala", "☹️\nMala", 2),
+        ("#FBC02D", "regular", "😐\nRegular", 3),
+        ("#8BC34A", "buena", "🙂\nBuena", 4),
+        ("#43A047", "excelente", "😁\nExcelente", 5),
     ]
 
-    cols = st.columns(5)
+    cols = st.columns(5, gap="large")
 
     for col, (color, tipo, texto, puntos) in zip(cols, opciones):
+
         with col:
+
             st.markdown(f"""
-<div style="background:white;border-radius:18px;padding:20px 10px;
-box-shadow:0 4px 14px rgba(0,0,0,.08);
-border:2px solid rgba(0,0,0,.08);text-align:center;margin-bottom:10px;">
-{cara_svg(color,tipo)}
-</div>
-""", unsafe_allow_html=True)
+            <div style="
+                background:white;
+                border-radius:24px;
+                padding:25px 15px;
+                text-align:center;
+                box-shadow:0 8px 20px rgba(0,0,0,.10);
+                border:2px solid rgba(0,0,0,.06);
+                margin-bottom:15px;
+            ">
+                {cara_svg(color, tipo)}
+            </div>
+            """, unsafe_allow_html=True)
 
-            if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
-                finalizar(texto, puntos)
+            if st.button(
+                texto,
+                key=f"valoracion_{puntos}",
+                use_container_width=True
+            ):
+                finalizar(
+                    texto.replace("😡\n","")
+                         .replace("☹️\n","")
+                         .replace("😐\n","")
+                         .replace("🙂\n","")
+                         .replace("😁\n",""),
+                    puntos
+                )
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    c1,c2,c3=st.columns([1,1,1])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    c1,c2,c3 = st.columns([1,1,1])
+
     with c2:
-        if st.button("⟵ Volver", use_container_width=True):
-            st.session_state.pantalla=1
+        if st.button(
+            "⟵ Volver",
+            use_container_width=True
+        ):
+            st.session_state.pantalla = 1
             st.rerun()
 
 # ============================================================
