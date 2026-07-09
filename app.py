@@ -298,6 +298,35 @@ def pantalla_cliente_1():
                 st.rerun()
 
 
+def svg_base64(color, tipo):
+    import base64
+    if tipo == "muy_mala":
+        boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = '<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+    elif tipo == "mala":
+        boca = '<path d="M32,70 Q50,58 68,70" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+    elif tipo == "regular":
+        boca = '<line x1="32" y1="68" x2="68" y2="68" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
+        cejas = ""
+    elif tipo == "buena":
+        boca = '<path d="M32,60 Q50,75 68,60" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+    else:
+        boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        cejas = ""
+    svg = (
+        f'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+        f'<circle cx="50" cy="50" r="46" fill="{color}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
+        f'<circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>'
+        f'<circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>'
+        f'{cejas}{boca}'
+        f'</svg>'
+    )
+    b64 = base64.b64encode(svg.encode()).decode()
+    return f"data:image/svg+xml;base64,{b64}"
+
+
 def pantalla_cliente_2():
     mostrar_cabecera()
     st.markdown(
@@ -314,67 +343,41 @@ def pantalla_cliente_2():
         ("#43A047", "excelente","Excelente",5),
     ]
 
-    # Caras SVG clickables — al tocarlas activan el botón de Streamlit correspondiente
-    caras_html = '<div style="display:flex; gap:12px; justify-content:center; padding:0 8px; margin-bottom:10px;">'
+    # CSS: cada botón de carita tiene el SVG como imagen de fondo centrada en la mitad superior
+    estilos_caras = ""
     for color, tipo, texto, puntos in opciones:
-        if tipo == "muy_mala":
-            boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-            cejas = '<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
-        elif tipo == "mala":
-            boca = '<path d="M32,70 Q50,58 68,70" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-            cejas = ""
-        elif tipo == "regular":
-            boca = '<line x1="32" y1="68" x2="68" y2="68" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
-            cejas = ""
-        elif tipo == "buena":
-            boca = '<path d="M32,60 Q50,75 68,60" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-            cejas = ""
-        else:
-            boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
-            cejas = ""
+        img = svg_base64(color, tipo)
+        estilos_caras += f"""
+div[data-testid="stButton"] button[data-testid="baseButton-secondary"]:has(+ * * [data-testid]),
+div[data-testid="column"]:nth-child({puntos}) div.stButton > button {{
+    background-image: url('{img}');
+    background-repeat: no-repeat;
+    background-position: center 18px;
+    background-size: 110px 110px;
+    height: 200px !important;
+    padding-top: 140px !important;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-radius: 18px;
+    border: 3px solid transparent;
+    background-color: white;
+    color: #1C1C1C;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}}
+div[data-testid="column"]:nth-child({puntos}) div.stButton > button:active {{
+    border-color: {color} !important;
+    box-shadow: 0 0 0 5px {color}55 !important;
+    transform: scale(0.95) !important;
+}}
+div[data-testid="column"]:nth-child({puntos}) div.stButton > button:hover {{
+    border-color: {color};
+    box-shadow: 0 0 0 4px {color}33;
+}}
+"""
 
-        svg = (
-            '<svg viewBox="0 0 100 100" width="100%" xmlns="http://www.w3.org/2000/svg">'
-            f'<circle cx="50" cy="50" r="46" fill="{color}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
-            '<circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>'
-            '<circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>'
-            f'{cejas}{boca}'
-            '</svg>'
-        )
+    st.markdown(f"<style>{estilos_caras}</style>", unsafe_allow_html=True)
 
-        caras_html += (
-            f'<div id="cara_{puntos}" '
-            f'onclick="pulsarCara(this,\'{texto}\',\'{color}\')" '
-            f'ontouchstart="pulsarCara(this,\'{texto}\',\'{color}\')" '
-            'style="flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;'
-            'background:white;border-radius:18px;padding:20px 10px 16px 10px;'
-            'border:3px solid transparent;box-shadow:0 4px 14px rgba(0,0,0,0.06);'
-            'transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s;">'
-            f'<div style="width:100%;">{svg}</div>'
-            f'<span style="margin-top:14px;font-family:Inter,sans-serif;font-weight:600;font-size:1.1rem;color:#1C1C1C;">{texto}</span>'
-            '</div>'
-        )
-
-    caras_html += '''</div>
-<script>
-function pulsarCara(el, texto, color) {
-    el.style.transform = "scale(0.93)";
-    el.style.borderColor = color;
-    el.style.boxShadow = "0 0 0 6px " + color + "55";
-    setTimeout(function() {
-        var btns = window.parent.document.querySelectorAll("button[kind='secondary'], button");
-        for (var i = 0; i < btns.length; i++) {
-            if (btns[i].innerText.trim() === texto) {
-                btns[i].click();
-                return;
-            }
-        }
-    }, 180);
-}
-</script>'''
-    st.markdown(caras_html, unsafe_allow_html=True)
-
-    # Botones reales de Streamlit (también pulsables directamente)
     cols = st.columns(5)
     for col, (color, tipo, texto, puntos) in zip(cols, opciones):
         with col:
