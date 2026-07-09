@@ -298,35 +298,6 @@ def pantalla_cliente_1():
                 st.rerun()
 
 
-def svg_base64(color, tipo):
-    import base64
-    if tipo == "muy_mala":
-        boca = '<path d="M30,72 Q50,55 70,72" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-        cejas = '<line x1="24" y1="32" x2="40" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="32" x2="60" y2="40" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
-    elif tipo == "mala":
-        boca = '<path d="M32,70 Q50,58 68,70" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-        cejas = ""
-    elif tipo == "regular":
-        boca = '<line x1="32" y1="68" x2="68" y2="68" stroke="#1f1f1f" stroke-width="5" stroke-linecap="round"/>'
-        cejas = ""
-    elif tipo == "buena":
-        boca = '<path d="M32,60 Q50,75 68,60" stroke="#1f1f1f" stroke-width="5" fill="none" stroke-linecap="round"/>'
-        cejas = ""
-    else:
-        boca = '<path d="M26,56 Q50,84 74,56" stroke="#1f1f1f" stroke-width="6" fill="none" stroke-linecap="round"/>'
-        cejas = ""
-    svg = (
-        f'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
-        f'<circle cx="50" cy="50" r="46" fill="{color}" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
-        f'<circle cx="35" cy="42" r="5.5" fill="#1f1f1f"/>'
-        f'<circle cx="65" cy="42" r="5.5" fill="#1f1f1f"/>'
-        f'{cejas}{boca}'
-        f'</svg>'
-    )
-    b64 = base64.b64encode(svg.encode()).decode()
-    return f"data:image/svg+xml;base64,{b64}"
-
-
 def pantalla_cliente_2():
     mostrar_cabecera()
     st.markdown(
@@ -343,46 +314,40 @@ def pantalla_cliente_2():
         ("#43A047", "excelente","Excelente",5),
     ]
 
-    # CSS: cada botón de carita tiene el SVG como imagen de fondo centrada en la mitad superior
-    estilos_caras = ""
+    # Generar CSS con SVG como fondo de cada botón, apuntando por ID de wrapper
+    css = ""
     for color, tipo, texto, puntos in opciones:
         img = svg_base64(color, tipo)
-        estilos_caras += f"""
-div[data-testid="stButton"] button[data-testid="baseButton-secondary"]:has(+ * * [data-testid]),
-div[data-testid="column"]:nth-child({puntos}) div.stButton > button {{
-    background-image: url('{img}');
-    background-repeat: no-repeat;
-    background-position: center 18px;
-    background-size: 110px 110px;
-    height: 200px !important;
-    padding-top: 140px !important;
-    font-size: 1.15rem;
-    font-weight: 700;
-    border-radius: 18px;
-    border: 3px solid transparent;
-    background-color: white;
-    color: #1C1C1C;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+        css += f"""
+#cara-btn-{puntos} button {{
+    background-image: url('{img}') !important;
+    background-repeat: no-repeat !important;
+    background-position: center 16px !important;
+    background-size: 120px 120px !important;
+    height: 210px !important;
+    padding-top: 148px !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    border-radius: 18px !important;
+    background-color: white !important;
+    color: #1C1C1C !important;
+    border: 2px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07) !important;
 }}
-div[data-testid="column"]:nth-child({puntos}) div.stButton > button:active {{
-    border-color: {color} !important;
-    box-shadow: 0 0 0 5px {color}55 !important;
+#cara-btn-{puntos} button:active {{
     transform: scale(0.95) !important;
-}}
-div[data-testid="column"]:nth-child({puntos}) div.stButton > button:hover {{
-    border-color: {color};
-    box-shadow: 0 0 0 4px {color}33;
+    border-color: {color} !important;
 }}
 """
-
-    st.markdown(f"<style>{estilos_caras}</style>", unsafe_allow_html=True)
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
     cols = st.columns(5)
     for col, (color, tipo, texto, puntos) in zip(cols, opciones):
         with col:
+            st.markdown(f'<div id="cara-btn-{puntos}">', unsafe_allow_html=True)
             if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
                 finalizar(texto, puntos)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
