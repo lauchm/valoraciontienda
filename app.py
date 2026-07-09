@@ -5,6 +5,7 @@ import os
 import time
 import io
 import requests
+import base64
 
 # ============================================================
 # CONFIGURACIÓN — PERSONALIZA AQUÍ TU MARCA
@@ -238,6 +239,15 @@ def cara_svg(color_circulo, tipo):
     return f'<div style="text-align:center; padding:0 8px;">{svg}</div>'
 
 
+
+
+def svg_base64(color, tipo):
+    html = cara_svg(color, tipo)
+    inicio = html.find("<svg")
+    fin = html.find("</svg>") + len("</svg>")
+    svg = html[inicio:fin]
+    return "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+
 def guardar_valoracion(valoracion, puntuacion):
     datos = {
         ENTRY_ALBARAN: st.session_state.albaran_actual,
@@ -300,62 +310,43 @@ def pantalla_cliente_1():
 
 def pantalla_cliente_2():
     mostrar_cabecera()
+
     st.markdown(
-        "<h2 style='text-align:center; margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
+        "<h2 style='text-align:center;margin-top:1rem;'>¿Cómo ha sido su experiencia?</h2>",
         unsafe_allow_html=True,
     )
+
     st.markdown("<br>", unsafe_allow_html=True)
 
     opciones = [
         ("#D32F2F", "muy_mala", "Muy mala", 1),
-        ("#F57C00", "mala",     "Mala",     2),
-        ("#FBC02D", "regular",  "Regular",  3),
-        ("#9CCC65", "buena",    "Buena",    4),
-        ("#43A047", "excelente","Excelente",5),
+        ("#F57C00", "mala", "Mala", 2),
+        ("#FBC02D", "regular", "Regular", 3),
+        ("#9CCC65", "buena", "Buena", 4),
+        ("#43A047", "excelente", "Excelente", 5),
     ]
 
-    # Generar CSS con SVG como fondo de cada botón, apuntando por ID de wrapper
-    css = ""
-    for color, tipo, texto, puntos in opciones:
-        img = svg_base64(color, tipo)
-        css += f"""
-#cara-btn-{puntos} button {{
-    background-image: url('{img}') !important;
-    background-repeat: no-repeat !important;
-    background-position: center 16px !important;
-    background-size: 120px 120px !important;
-    height: 210px !important;
-    padding-top: 148px !important;
-    font-size: 1.15rem !important;
-    font-weight: 700 !important;
-    border-radius: 18px !important;
-    background-color: white !important;
-    color: #1C1C1C !important;
-    border: 2px solid rgba(0,0,0,0.08) !important;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.07) !important;
-}}
-#cara-btn-{puntos} button:active {{
-    transform: scale(0.95) !important;
-    border-color: {color} !important;
-}}
-"""
-    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-
     cols = st.columns(5)
+
     for col, (color, tipo, texto, puntos) in zip(cols, opciones):
         with col:
-            st.markdown(f'<div id="cara-btn-{puntos}">', unsafe_allow_html=True)
+            st.markdown(f"""
+<div style="background:white;border-radius:18px;padding:20px 10px;
+box-shadow:0 4px 14px rgba(0,0,0,.08);
+border:2px solid rgba(0,0,0,.08);text-align:center;margin-bottom:10px;">
+{cara_svg(color,tipo)}
+</div>
+""", unsafe_allow_html=True)
+
             if st.button(texto, key=f"btn_{puntos}", use_container_width=True):
                 finalizar(texto, puntos)
-            st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
+    c1,c2,c3=st.columns([1,1,1])
+    with c2:
         if st.button("⟵ Volver", use_container_width=True):
-            st.session_state.pantalla = 1
+            st.session_state.pantalla=1
             st.rerun()
-
 
 # ============================================================
 # PANTALLAS — ADMINISTRADOR
