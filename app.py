@@ -359,19 +359,33 @@ def pantalla_cliente_2():
         )
 
         tarjetas_html += (
-            f'<a href="?val={val}" style="'
-            'flex:1; text-decoration:none; display:flex; flex-direction:column; align-items:center;'
+            f'<div onclick="seleccionar(\'{val}\', \'{color}\')" style="'
+            'flex:1; cursor:pointer; display:flex; flex-direction:column; align-items:center;'
             'background:white; border-radius:18px; padding:20px 10px 16px 10px;'
-            'border:2px solid rgba(0,0,0,0.08); box-shadow:0 4px 14px rgba(0,0,0,0.06);'
-            'transition:transform 0.1s ease, box-shadow 0.1s ease, border-color 0.15s ease;'
-            f'" onmousedown="this.style.transform=\'scale(0.94)\';this.style.boxShadow=\'0 0 0 4px {color}88\';this.style.borderColor=\'{color}\'"'
-            f' ontouchstart="this.style.transform=\'scale(0.94)\';this.style.boxShadow=\'0 0 0 4px {color}88\';this.style.borderColor=\'{color}\'">'
+            f'border:3px solid transparent; box-shadow:0 4px 14px rgba(0,0,0,0.06);'
+            'transition:transform 0.15s, box-shadow 0.15s, border-color 0.15s;'
+            f'" id="card_{val}">'
             f'<div style="width:100%">{svg}</div>'
             f'<span style="margin-top:14px; font-family:Inter,sans-serif; font-weight:600; font-size:1.1rem; color:#1C1C1C;">{texto}</span>'
-            '</a>'
+            '</div>'
         )
 
-    tarjetas_html += '</div>'
+    tarjetas_html += '''</div>
+<script>
+function seleccionar(val, color) {
+    // Iluminar la tarjeta pulsada
+    var card = document.getElementById("card_" + val);
+    if (card) {
+        card.style.transform = "scale(0.93)";
+        card.style.borderColor = color;
+        card.style.boxShadow = "0 0 0 6px " + color + "55";
+    }
+    // Navegar dentro del mismo iframe tras un pequeño delay visual
+    setTimeout(function() {
+        window.parent.location.href = window.parent.location.pathname + "?val=" + val;
+    }, 200);
+}
+</script>'''
     st.markdown(tarjetas_html, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
