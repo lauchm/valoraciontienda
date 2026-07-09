@@ -272,7 +272,7 @@ def finalizar(valoracion, puntuacion):
     st.balloons()
     st.success("¡Gracias por su valoración!")
 
-    time.sleep(1)
+    time.sleep(0.5)
 
     st.session_state.albaran = ""
     st.session_state.albaran_actual = ""
