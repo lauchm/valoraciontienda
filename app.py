@@ -312,66 +312,65 @@ def pantalla_cliente_2():
     mostrar_cabecera()
 
     st.markdown("""
-        <h2 style="
-            text-align:center;
-            margin-top:10px;
-            margin-bottom:30px;
-            font-size:2.2rem;">
+        <h2 style="text-align:center; margin-top:1rem;">
             ¿Cómo ha sido su experiencia?
         </h2>
     """, unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
     opciones = [
-        ("#D32F2F", "muy_mala", "😡\nMuy mala", 1),
-        ("#F57C00", "mala", "☹️\nMala", 2),
-        ("#FBC02D", "regular", "😐\nRegular", 3),
-        ("#8BC34A", "buena", "🙂\nBuena", 4),
-        ("#43A047", "excelente", "😁\nExcelente", 5),
+        ("😡", "Muy mala", 1),
+        ("☹️", "Mala", 2),
+        ("😐", "Regular", 3),
+        ("🙂", "Buena", 4),
+        ("😁", "Excelente", 5),
     ]
+
+    # CSS específico para los botones de valoración
+    st.markdown("""
+    <style>
+    div.stButton > button {
+        height: 220px;
+        border-radius: 24px;
+        font-size: 2rem;
+        font-weight: 700;
+        background: white;
+        border: 2px solid #e5e5e5;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+        transition: all .15s ease;
+        white-space: pre-line;
+        line-height: 1.4;
+    }
+
+    div.stButton > button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 30px rgba(0,0,0,.15);
+    }
+
+    div.stButton > button:active {
+        transform: scale(.96);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     cols = st.columns(5, gap="large")
 
-    for col, (color, tipo, texto, puntos) in zip(cols, opciones):
-
+    for col, (emoji, texto, puntos) in zip(cols, opciones):
         with col:
-
-            st.markdown(f"""
-            <div style="
-                background:white;
-                border-radius:24px;
-                padding:25px 15px;
-                text-align:center;
-                box-shadow:0 8px 20px rgba(0,0,0,.10);
-                border:2px solid rgba(0,0,0,.06);
-                margin-bottom:15px;
-            ">
-                {cara_svg(color, tipo)}
-            </div>
-            """, unsafe_allow_html=True)
-
             if st.button(
-                texto,
+                f"{emoji}\n\n{texto}",
                 key=f"valoracion_{puntos}",
-                use_container_width=True
+                use_container_width=True,
             ):
-                finalizar(
-                    texto.replace("😡\n","")
-                         .replace("☹️\n","")
-                         .replace("😐\n","")
-                         .replace("🙂\n","")
-                         .replace("😁\n",""),
-                    puntos
-                )
+                finalizar(texto, puntos)
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    c1,c2,c3 = st.columns([1,1,1])
+    c1, c2, c3 = st.columns([1,1,1])
 
     with c2:
-        if st.button(
-            "⟵ Volver",
-            use_container_width=True
-        ):
+        if st.button("⟵ Volver", use_container_width=True):
             st.session_state.pantalla = 1
             st.rerun()
 
